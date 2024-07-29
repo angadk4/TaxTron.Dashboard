@@ -1,0 +1,99 @@
+/* Login.css */
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 85vh;
+    width: 100vw;
+    background: linear-gradient(to right, #4CAF50, #66BB6A);
+    padding: 20px; /* Add padding to the entire container */
+  }
+  
+  .login-box {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+  
+  .login-logo {
+    margin-bottom: 20px;
+  }
+  
+  .login-logo img {
+    max-width: 200px;
+    width: 100%;
+  }
+  
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .input-container {
+    display: flex;
+    align-items: center;
+    border: 2px solid #dedede;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: white; /* Set the background color of the input container */
+  }
+  
+  .icon {
+    padding: 5px;
+    margin-left: 10px;
+    color: #4CAF50;
+  }
+  
+  .login-input {
+    padding: 15px;
+    border: none;
+    font-size: 16px;
+    width: 100%;
+  }
+  
+  .login-input:focus {
+    outline: none;
+    border: none;
+  }
+  
+  .unique-login-btn {
+    background: linear-gradient(to right, #4CAF50, #66BB6A);
+    color: #ffffff;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: background 0.3s;
+  }
+  
+  .unique-login-btn:hover {
+    background: linear-gradient(to right, #43A047, #66BB6A);
+  }
+  
+  .signup-text {
+    margin-top: 20px;
+  }
+  
+  .signup-text a {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .signup-text a:hover {
+    text-decoration: underline;
+  }
+  
