@@ -40,11 +40,11 @@ const Returns = () => {
   const itemsPerPage = 15;
   const userID = '000779638e3141fcb06a56bdc5cc484e';
   const baseURL = '/taxreturnsearch/getreturnsdata/';
-  const activeTab = location.state?.activeTab || 'T1'; // Get the activeTab from the state or default to T1
+  const activeTab = location.state?.activeTab || 'T1';
 
   const buildParams = () => {
     const params = new URLSearchParams();
-    // Add parameters as needed
+    params.append('ProductCode', activeTab); // Include the product code based on the active tab
     return params.toString();
   };
 
@@ -57,8 +57,8 @@ const Returns = () => {
         const response = await axios.get(url);
         console.log('Fetched Data:', response.data);
         const data = Array.isArray(response.data.item2) ? response.data.item2 : [];
-        setClientReturnsData(data); // Set the item2 data
-        setFilteredReturns(data); // Filter the item2 data
+        setClientReturnsData(data);
+        setFilteredReturns(data);
         setError('');
       } catch (error) {
         console.error('Error fetching client returns data:', error);
@@ -131,7 +131,6 @@ const Returns = () => {
 
   const sortedReturns = useMemo(() => {
     const sorted = [...filteredReturns];
-    // Sort logic if needed, e.g., by date or any other field
     return sorted;
   }, [filteredReturns]);
 
@@ -177,13 +176,31 @@ const Returns = () => {
     setFilteredReturns(clientReturnsData);
   };
 
-  const columns = [
-    { key: 'tags', label: 'Tags', className: 'tags' },
-    { key: 'Firstnames', label: 'Name', className: 'name' },
-    { key: 'spFirstnames', label: 'Spouse', className: 'spouse' },
-    { key: 'FileStatus', label: 'File Status', className: 'file-status' },
-    { key: 'LastUpdated', label: 'Last Updated', className: 'last-updated' },
-  ];
+  const columns = useMemo(() => {
+    if (activeTab === 'T3') {
+      return [
+        { key: 'tags', label: 'Tags', className: 'tags' },
+        { key: 'estateName', label: 'Estate Name', className: 'estate-name' },
+        { key: 'trustNumber', label: 'Trust Number', className: 'trust-number' },
+        { key: 'fileStatus', label: 'File Status', className: 'file-status' },
+        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+      ];
+    } else if (activeTab === 'T2') {
+      return [
+        { key: 'tags', label: 'Tags', className: 'tags' },
+        { key: 'fyEnd', label: 'Year End', className: 'year-end' },
+        { key: 'fileStatus', label: 'File Status', className: 'file-status' },
+        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+      ];
+    }
+    return [
+      { key: 'tags', label: 'Tags', className: 'tags' },
+      { key: 'firstnames', label: 'First Name', className: 'first-name' },
+      { key: 'spFirstnames', label: 'Spouse', className: 'spouse' },
+      { key: 'fileStatus', label: 'File Status', className: 'file-status' },
+      { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+    ];
+  }, [activeTab]);
 
   const renderCheckbox = (name, label) => (
     <div className="filter-item">
@@ -225,7 +242,7 @@ const Returns = () => {
               <>
                 <p><strong>Client ID:</strong> <span>{clientId}</span></p>
                 <p><strong>Estate Name:</strong> <span>{clientInfo.estateName}</span></p>
-                <p><strong>Trust Number:</strong> <span>{clientInfo.SNFull}</span></p>
+                <p><strong>Trust Number:</strong> <span>{clientInfo.trustNumber}</span></p>
               </>
             )}
           </div>
