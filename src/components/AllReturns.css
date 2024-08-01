@@ -330,3 +330,56 @@ input[type="checkbox"] {
     background-color: #4CAF50;
     color: #fff;
 }
+
+.settings-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px; /* Increased padding for a more prominent button */
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
+    margin-right: 30px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  
+  .settings-button:hover {
+    background-color: #337435; /* Darker shade for hover effect */
+  }
+  
+  .settings-button svg {
+    margin-right: 10px;
+    font-size: 1.5em; /* Increase the size of the gear icon */
+  }
+  
+  .settings-button:active {
+    transform: scale(0.98); /* Slightly reduce size when clicked */
+  }
+
+  .settings-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .settings-modal {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    width: 500px;
+    height: 500px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }  

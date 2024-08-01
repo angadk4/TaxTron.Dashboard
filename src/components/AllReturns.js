@@ -3,6 +3,7 @@ import ReactPaginate from 'react-paginate';
 import './AllReturns.css';
 import APIController from './clientfetch';
 import Papa from 'papaparse';
+import { FaCog } from 'react-icons/fa';
 
 const baseURL = '/taxreturnsearch/getreturnsdata/';
 const userID = '000779638e3141fcb06a56bdc5cc484e';
@@ -97,6 +98,7 @@ const AllReturns = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState(0);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const itemsPerPage = 20;
 
   const months = useMemo(() =>
@@ -458,6 +460,8 @@ const AllReturns = () => {
     ];
   }, [activeTab]);
 
+  const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
+
   return (
     <div className="main-content">
       <div className="filter-container">
@@ -586,6 +590,10 @@ const AllReturns = () => {
             />
           </div>
           <button className="export-button" onClick={exportToCSV}>Export to CSV</button>
+          <button className="settings-button" onClick={toggleSettings}>
+            <FaCog />
+            Display Settings
+          </button>
         </div>
         {(Object.keys(appliedCurFilters).some(key => appliedCurFilters[key]) || Object.keys(appliedPrevFilters).some(key => appliedPrevFilters[key]) || Object.values(appliedT2Filters).some(v => v) || Object.values(appliedT3Filters).some(v => v)) && (
           <div className="applied-filters">
@@ -679,6 +687,13 @@ const AllReturns = () => {
           </div>
         )}
       </div>
+      {isSettingsOpen && (
+        <div className="settings-overlay" onClick={toggleSettings}>
+          <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
+            {/* Future filter settings can be added here */}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
