@@ -20,6 +20,16 @@ const filterDisplayNames = {
   hstReturnFiled: 'HST',
   t2NonResident: 'Non Resident',
   bNonResidentTrust: 'Residency of Trust',
+  trustType: 'Trust Type',
+  t2ReturnFiled: 'Return Filed',
+  t2T1135: 'T2T1135',
+  t2S89: 'T2S89',
+  t2T2054: 'T2T2054',
+  t2UHT: 'T2UHT',
+  foreignIncome: 'Foreign Income',
+  gstFiled: 'GST Filed',
+  balanceOwing: 'Balance Owing',
+  t1135ReturnFiled: 'T1135',
 };
 
 const formatDate = (dateStr) => {
@@ -35,8 +45,8 @@ const AllReturns = () => {
   const [activeTab, setActiveTab] = useState('T1');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [selectedBirthMonth, setSelectedBirthMonth] = useState('');
-  const [selectedBirthDate, setSelectedBirthDate] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
   const [appliedCurFilters, setAppliedCurFilters] = useState({});
   const [appliedPrevFilters, setAppliedPrevFilters] = useState({});
   const [appliedT2Filters, setAppliedT2Filters] = useState({});
@@ -63,10 +73,23 @@ const AllReturns = () => {
     t2NonCapitalLoss: false,
     hstReturnFiled: false,
     t2NonResident: false,
+    t2ReturnFiled: false,
+    t2T1135: false,
+    t2S89: false,
+    t2T2054: false,
+    t2UHT: false,
   });
   const [t3CheckBoxState, setT3CheckBoxState] = useState({
     bNonResidentTrust: false,
+    foreignIncome: false,
+    gstFiled: false,
+    expectedRefund: false,
+    balanceOwing: false,
+    payrollSlipsDue: false,
+    t1135ReturnFiled: false,
   });
+  const [tempSelectedTrustType, setTempSelectedTrustType] = useState('');
+  const [appliedSelectedTrustType, setAppliedSelectedTrustType] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
   const [filteredClients, setFilteredClients] = useState([]);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -109,17 +132,47 @@ const AllReturns = () => {
         if (appliedPrevFilters.expectedRefund) filters.push(`${prevPrefix}ExpectedRefund eq true`);
         if (appliedPrevFilters.payrollSlipsDue) filters.push(`${prevPrefix}PayrollSlipsDue eq true`);
       }
-    } else if (activeTab === 'T2') {
+    } else if (activeTab === 'T2' || activeTab === 'T3') {
       if (Object.values(appliedT2Filters).some(v => v)) {
         if (appliedT2Filters.t2TaxableIncome) filters.push('bT2TaxableIncome eq true');
         if (appliedT2Filters.t2CapitalLoss) filters.push('bT2CapitalLoss eq true');
         if (appliedT2Filters.t2NonCapitalLoss) filters.push('bT2NonCapitalLoss eq true');
         if (appliedT2Filters.hstReturnFiled) filters.push('bHSTReturnFiled eq true');
         if (appliedT2Filters.t2NonResident) filters.push('bT2NonResident eq true');
+        if (appliedT2Filters.t2ReturnFiled) filters.push('bT2ReturnFiled eq true');
+        if (appliedT2Filters.t2T1135) filters.push('bT2T1135ReturnFiled eq true');
+        if (appliedT2Filters.t2S89) filters.push('bT2S89ReturnFiled eq true');
+        if (appliedT2Filters.t2T2054) filters.push('bT2T2054ReturnFiled eq true');
+        if (appliedT2Filters.t2UHT) filters.push('bT2UHTReturnFiled eq true');
       }
-    } else if (activeTab === 'T3') {
-      if (appliedT3Filters.bNonResidentTrust) {
-        filters.push('bNonResidentTrust eq true');
+      if (activeTab === 'T3') {
+        if (appliedT3Filters.bNonResidentTrust) {
+          filters.push('bNonResidentTrust eq true');
+        }
+        if (appliedT3Filters.foreignIncome) {
+          filters.push('bForeignIncome eq true');
+        }
+        if (appliedT3Filters.gstFiled) {
+          filters.push('bGSTFiled eq true');
+        }
+        if (appliedT3Filters.expectedRefund) {
+          filters.push('bExpectedRefund eq true');
+        }
+        if (appliedT3Filters.balanceOwing) {
+          filters.push('bBalanceOwing eq true');
+        }
+        if (appliedT3Filters.payrollSlipsDue) {
+          filters.push('bPayRollSlipsDue eq true');
+        }
+        if (appliedT3Filters.t1135ReturnFiled) {
+          filters.push('bT1135ReturnFiled eq true');
+        }
+        if (appliedSelectedTrustType) {
+          filters.push(`trustType eq ${appliedSelectedTrustType}`);
+        }
+      }
+      if (selectedDay) {
+        filters.push(`yearEnd eq ${selectedDay}`);
       }
     }
     if (filters.length > 0) {
@@ -128,7 +181,7 @@ const AllReturns = () => {
     params.append('Size', itemsPerPage);
     params.append('Skip', currentPage * itemsPerPage);
     return params.toString();
-  }, [activeTab, debouncedSearchQuery, selectedLocation, appliedCurFilters, appliedPrevFilters, appliedT2Filters, appliedT3Filters, currentPage]);
+  }, [activeTab, debouncedSearchQuery, selectedLocation, appliedCurFilters, appliedPrevFilters, appliedT2Filters, appliedT3Filters, appliedSelectedTrustType, selectedDay, currentPage]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => setDebouncedSearchQuery(searchQuery), 500);
@@ -144,6 +197,7 @@ const AllReturns = () => {
       setAppliedT2Filters(t2CheckBoxState);
     } else if (activeTab === 'T3') {
       setAppliedT3Filters(t3CheckBoxState);
+      setAppliedSelectedTrustType(tempSelectedTrustType);
     }
     setLoading(true);
     setFilteredClients([]);
@@ -190,19 +244,19 @@ const AllReturns = () => {
   };
 
   const handleMonthChange = (e) => {
-    setSelectedBirthMonth(e.target.value);
+    setSelectedMonth(e.target.value);
     setShowCalendar(false);
-    setSelectedBirthDate('');
+    setSelectedDay('');
   };
 
-  const handleDateChange = (date) => {
-    setSelectedBirthDate(date);
+  const handleDayChange = (date) => {
+    setSelectedDay(date);
     setShowCalendar(false);
   };
 
   const handleReset = () => {
-    setSelectedBirthMonth('');
-    setSelectedBirthDate('');
+    setSelectedMonth('');
+    setSelectedDay('');
     setSearchQuery('');
     setSelectedLocation('');
     setCurCheckBoxState({
@@ -227,10 +281,23 @@ const AllReturns = () => {
       t2NonCapitalLoss: false,
       hstReturnFiled: false,
       t2NonResident: false,
+      t2ReturnFiled: false,
+      t2T1135: false,
+      t2S89: false,
+      t2T2054: false,
+      t2UHT: false,
     });
     setT3CheckBoxState({
       bNonResidentTrust: false,
+      foreignIncome: false,
+      gstFiled: false,
+      expectedRefund: false,
+      balanceOwing: false,
+      payrollSlipsDue: false,
+      t1135ReturnFiled: false,
     });
+    setTempSelectedTrustType('');
+    setAppliedSelectedTrustType('');
     setAppliedCurFilters({});
     setAppliedPrevFilters({});
     setAppliedT2Filters({});
@@ -283,6 +350,9 @@ const AllReturns = () => {
         delete newFilters[filterName];
         return newFilters;
       });
+      if (filterName === 'trustType') {
+        setAppliedSelectedTrustType('');
+      }
     }
   };
 
@@ -337,21 +407,21 @@ const AllReturns = () => {
   }
 
   const renderCalendar = () => {
-    if (!selectedBirthMonth) return null;
-    const monthIndex = months.indexOf(selectedBirthMonth);
+    if (!selectedMonth) return null;
+    const monthIndex = months.indexOf(selectedMonth);
     const daysInMonth = new Date(2024, monthIndex + 1, 0).getDate();
     return (
       <div className="calendar-overlay" onClick={() => setShowCalendar(false)}>
         <div className="calendar-container" onClick={(e) => e.stopPropagation()}>
           <div className="calendar-header">
-            <h4>{selectedBirthMonth}</h4>
+            <h4>{selectedMonth}</h4>
           </div>
           <div className="calendar-grid">
             {[...Array(daysInMonth)].map((_, i) => (
               <button
                 key={i + 1}
-                className={`calendar-day ${selectedBirthDate === (i + 1) ? 'selected' : ''}`}
-                onClick={() => handleDateChange(i + 1)}
+                className={`calendar-day ${selectedDay === (i + 1) ? 'selected' : ''}`}
+                onClick={() => handleDayChange(i + 1)}
               >
                 {i + 1}
               </button>
@@ -415,12 +485,12 @@ const AllReturns = () => {
           </div>
         </div>
         <div className="filter-category">
-          <h3>By Birthdate</h3>
+          <h3>{activeTab === 'T1' ? 'By Birthdate' : 'By Year End'}</h3>
           <div className="filter-item">
-            <label htmlFor="month-select">Birth Month:</label>
+            <label htmlFor="month-select">Month:</label>
             <select 
               id="month-select"
-              value={selectedBirthMonth}
+              value={selectedMonth}
               onChange={handleMonthChange}
               className="custom-select"
             >
@@ -430,13 +500,13 @@ const AllReturns = () => {
               ))}
             </select>
           </div>
-          <div className={`filter-item ${selectedBirthMonth ? '' : 'inactive'}`}>
-            <label htmlFor="date-select">Birth Date:</label>
-            <span className="date-display">{selectedBirthDate ? `${selectedBirthMonth} ${selectedBirthDate}` : 'Select a date'}</span>
+          <div className={`filter-item ${selectedMonth ? '' : 'inactive'}`}>
+            <label htmlFor="day-select">Day:</label>
+            <span className="date-display">{selectedDay ? `${selectedMonth} ${selectedDay}` : 'Select a day'}</span>
             <button 
               className="calendar-button" 
               onClick={() => setShowCalendar(true)} 
-              disabled={!selectedBirthMonth}
+              disabled={!selectedMonth}
             >
               Select Date
             </button>
@@ -445,6 +515,22 @@ const AllReturns = () => {
         </div>
         <div className="filter-category">
           <h3>Client Filters</h3>
+          {activeTab === 'T3' && (
+            <div className="filter-item">
+              <label htmlFor="trust-type-select">Trust Type:</label>
+              <select
+                id="trust-type-select"
+                value={tempSelectedTrustType}
+                onChange={(e) => setTempSelectedTrustType(e.target.value)}
+                className="custom-select"
+              >
+                <option value="">Select Trust Type</option>
+                <option value="900">900</option>
+                <option value="300">300</option>
+                <option value="903">903</option>
+              </select>
+            </div>
+          )}
           {activeTab === 'T1' && (
             <>
               {renderCheckbox("selfEmployed", "Self Employed")}
@@ -462,11 +548,22 @@ const AllReturns = () => {
               {renderCheckbox("t2NonCapitalLoss", "Non Capital Loss")}
               {renderCheckbox("hstReturnFiled", "HST")}
               {renderCheckbox("t2NonResident", "Non Resident")}
+              {renderCheckbox("t2ReturnFiled", "Return Filed")}
+              {renderCheckbox("t2T1135", "T2T1135")}
+              {renderCheckbox("t2S89", "T2S89")}
+              {renderCheckbox("t2T2054", "T2T2054")}
+              {renderCheckbox("t2UHT", "T2UHT")}
             </>
           )}
           {activeTab === 'T3' && (
             <>
               {renderCheckbox("bNonResidentTrust", "Residency of Trust")}
+              {renderCheckbox("foreignIncome", "Foreign Income")}
+              {renderCheckbox("gstFiled", "GST Filed")}
+              {renderCheckbox("expectedRefund", "Expected Refund")}
+              {renderCheckbox("balanceOwing", "Balance Owing")}
+              {renderCheckbox("payrollSlipsDue", "Payroll Slips")}
+              {renderCheckbox("t1135ReturnFiled", "T1135")}
             </>
           )}
         </div>

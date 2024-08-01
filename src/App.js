@@ -1,46 +1,52 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useLocation, useNavigate } from 'react-router-dom';
 import './App.css';
 import FilterTable from './components/filtertable';
 import Returns from './components/returns';
 import AllReturns from './components/AllReturns';
-import APIController from './components/clientfetch';
 import Header from './components/header';
-import Login from './components/login'; // Import the new Login component
+import Login from './components/login';
 
-function NavigationButton() {
+function NavigationButton({ onBackClick }) {
   const location = useLocation();
 
   return (
     <div className="top-section">
       {location.pathname.includes('/returns') && (
-        <Link to="/">
-          <button className="navigate-button">Back to Clients</button>
-        </Link>
+        <button className="navigate-button" onClick={onBackClick}>Back to Clients</button>
       )}
     </div>
   );
 }
 
 function App() {
-  const [data, setData] = useState(null);
+  const [selectedTab, setSelectedTab] = useState('T1'); // To store the selected tab
+  const navigate = useNavigate();
+
+  const handleBackClick = () => {
+    navigate('/', { state: { selectedTab } });
+  };
 
   return (
-    <Router>
-      <div className="App">
-        <Header />
-        <NavigationButton />
-        <div className="bottom-section">
-          <Routes>
-            <Route path="/" element={<FilterTable />} />
-            <Route path="/returns/:clientId" element={<Returns />} />
-            <Route path="/allreturns" element={<AllReturns />} />
-            <Route path="/login" element={<Login />} /> {/* Add this line */}
-          </Routes>
-        </div>
+    <div className="App">
+      <Header />
+      <NavigationButton onBackClick={handleBackClick} />
+      <div className="bottom-section">
+        <Routes>
+          <Route path="/" element={<FilterTable setSelectedTab={setSelectedTab} />} />
+          <Route path="/returns/:clientId" element={<Returns selectedTab={selectedTab} />} />
+          <Route path="/allreturns" element={<AllReturns />} />
+          <Route path="/login" element={<Login />} />
+        </Routes>
       </div>
-    </Router>
+    </div>
   );
 }
 
-export default App;
+export default function AppWithRouter() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}

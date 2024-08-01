@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
 import './filtertable.css';
 import { parseISO, format, parse } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Papa from 'papaparse';
 import APIController from './clientfetch';
 
@@ -51,9 +51,10 @@ const YearSelector = ({ selectedYear, onChange }) => {
   );
 };
 
-const FilterTable = () => {
+const FilterTable = ({ setSelectedTab }) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('T1');
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(location.state?.selectedTab || 'T1');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -181,6 +182,7 @@ const FilterTable = () => {
   };
 
   const handleClientClick = async (clientId) => {
+    setSelectedTab(activeTab); // Store the active tab when navigating to client details
     const selectedClient = filteredClients.find(client => client.clientId === clientId);
     const clientInfo = {
       clientId: selectedClient.clientId,
