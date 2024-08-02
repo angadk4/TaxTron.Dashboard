@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
+import { useTable, useSortBy, useResizeColumns, useFlexLayout } from 'react-table';
+import { Resizable } from 'react-resizable';
 import './AllReturns.css';
 import APIController from './clientfetch';
 import Papa from 'papaparse';
@@ -373,12 +375,11 @@ const AllReturns = () => {
         'File Status': client.cifFilingStatus,
         'Last Updated': formatDate(client.lastUpdated),
       } : {
-        'First Name': firstnames,
-        'Surname': surname,
-        'SIN': sin,
-        'Phone': phoneNo,
-        'Email': email,
-        'Last Updated': formatDate(lastUpdated),
+        'Tags': client.tags,
+        'Name': `${client.firstnames} ${client.surname}`,
+        'Spouse': `${client.spFirstnames || ''} ${client.spSurname || ''}`,
+        'File Status': client.efileFilingStatus || client.netfileFilingStatus || 'N/A',
+        'Last Updated': formatDate(client.lastUpdated),
       };
       return csvRow;
     });
@@ -437,30 +438,57 @@ const AllReturns = () => {
   const columns = useMemo(() => {
     if (activeTab === 'T3') {
       return [
-        { key: 'tags', label: 'Tags', className: 'tags' },
-        { key: 'estateName', label: 'Estate Name', className: 'estate-name' },
-        { key: 'SNFull', label: 'Trust Number', className: 'trust-number' },
-        { key: 't3retefileFilingStatus', label: 'File Status', className: 'file-status' },
-        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+        { Header: 'Tags', accessor: 'tags', id: 'tags' },
+        { Header: 'Estate Name', accessor: 'estateName', id: 'estateName' },
+        { Header: 'Trust Number', accessor: 'SNFull', id: 'SNFull' },
+        { Header: 'File Status', accessor: 't3retefileFilingStatus', id: 't3retefileFilingStatus' },
+        { Header: 'Last Updated', accessor: (row) => formatDate(row.lastUpdated), id: 'lastUpdated' },
       ];
     } else if (activeTab === 'T2') {
       return [
-        { key: 'tags', label: 'Tags', className: 'tags' },
-        { key: 'fyEnd', label: 'Year End', className: 'year-end' },
-        { key: 'cifFilingStatus', label: 'File Status', className: 'file-status' },
-        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+        { Header: 'Tags', accessor: 'tags', id: 'tags' },
+        { Header: 'Year End', accessor: 'fyEnd', id: 'fyEnd' },
+        { Header: 'File Status', accessor: 'cifFilingStatus', id: 'cifFilingStatus' },
+        { Header: 'Last Updated', accessor: (row) => formatDate(row.lastUpdated), id: 'lastUpdated' },
       ];
     }
     return [
-      { key: 'tags', label: 'Tags', className: 'tags' },
-      { key: 'Firstnames', label: 'Name', className: 'name' },
-      { key: 'spFirstnames', label: 'Spouse', className: 'spouse' },
-      { key: 'FileStatus', label: 'File Status', className: 'file-status' },
-      { key: 'LastUpdated', label: 'Last Updated', className: 'last-updated' },
+      { Header: 'Tags', accessor: 'tags', id: 'tags' },
+      { Header: 'Name', accessor: (row) => `${row.firstnames} ${row.surname}`, id: 'name' },
+      { Header: 'Spouse', accessor: (row) => `${row.spFirstnames || ''} ${row.spSurname || ''}`, id: 'spouse' },
+      { Header: 'File Status', accessor: 'efileFilingStatus', id: 'efileFilingStatus' },
+      { Header: 'Last Updated', accessor: (row) => formatDate(row.lastUpdated), id: 'lastUpdated' },
     ];
   }, [activeTab]);
 
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
+
+  const data = useMemo(() => paginatedClients, [paginatedClients]);
+
+  const defaultColumn = {
+    minWidth: 30,
+    width: 150,
+    maxWidth: 400,
+  };
+
+  const tableInstance = useTable(
+    {
+      columns,
+      data,
+      defaultColumn,
+    },
+    useResizeColumns,
+    useSortBy,
+    useFlexLayout
+  );
+
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+  } = tableInstance;
 
   return (
     <div className="main-content">
@@ -637,30 +665,42 @@ const AllReturns = () => {
           <div className="loading-spinner">Loading...</div>
         ) : (
           <div className="tabcontent active">
-            <table className="custom-table">
+            <table {...getTableProps()} className="custom-table">
               <thead>
-                <tr>
-                  {columns.map((column) => (
-                    <th key={column.key} className={column.className}>{column.label}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedClients.length > 0 ? paginatedClients.map((client, index) => (
-                  <tr key={index}>
-                    {columns.map((column) => (
-                      <td key={column.key} className={column.className}>
-                        <div className="scrollable-content">
-                          {column.key === 'lastUpdated' ? formatDate(client[column.key]) : client[column.key] || 'N/A'}
-                        </div>
-                      </td>
+                {headerGroups.map(headerGroup => (
+                  <tr {...headerGroup.getHeaderGroupProps()}>
+                    {headerGroup.headers.map(column => (
+                      <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                        {column.render('Header')}
+                        <Resizable width={column.width} height={0} onResize={(e, { size }) => column.setWidth(size.width)}>
+                          <div
+                            {...column.getResizerProps()}
+                            className={`resizer ${column.isResizing ? 'isResizing' : ''}`}
+                          />
+                        </Resizable>
+                        <span className="sort-indicator">
+                          {column.isSorted
+                            ? column.isSortedDesc
+                              ? '▼'
+                              : '▲'
+                            : ''}
+                        </span>
+                      </th>
                     ))}
                   </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={columns.length} className="no-results">No results found</td>
-                  </tr>
-                )}
+                ))}
+              </thead>
+              <tbody {...getTableBodyProps()}>
+                {rows.map(row => {
+                  prepareRow(row);
+                  return (
+                    <tr {...row.getRowProps()}>
+                      {row.cells.map(cell => (
+                        <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <ReactPaginate
