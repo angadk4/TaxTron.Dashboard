@@ -416,7 +416,7 @@ input[type="checkbox"]:checked:after {
 }
 
 .calendar-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -434,6 +434,24 @@ input[type="checkbox"]:checked:after {
   border-radius: 10px;
   padding: 10px;
   width: fit-content;
+  position: relative;
+}
+
+.calendar-container .rdrCalendarWrapper {
+  width: 400px; /* Increase the width of the calendar */
+}
+
+.close-button {
+  position: absolute;
+  top: 5px; /* Minimal margin from the top */
+  left: 5px; /* Minimal margin from the left */
+  background-color: transparent;
+  border: none;
+  color: #333;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 2px; /* Minimal padding */
 }
 
 .calendar-header {
@@ -522,7 +540,6 @@ input[type="checkbox"]:checked:after {
   transform:scale(1.03)
 }
 
-
 /* New styles for applied filters container and filter boxes with animations */
 .applied-filters {
   display: flex;
@@ -576,44 +593,9 @@ input[type="checkbox"]:checked:after {
   }
 }
 
-/* Add this to your filtertable.css */
-.calendar-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+/* Day Selection Styles */
+.day-selection {
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: space-between;
 }
-
-.calendar-container {
-  background-color: #fff;
-  border: 2px solid #ddd;
-  border-radius: 10px;
-  padding: 10px;
-  width: fit-content;
-  position: relative;
-}
-
-.calendar-container .rdrCalendarWrapper {
-  width: 400px; /* Increase the width of the calendar */
-}
-
-.close-button {
-  position: absolute;
-  top: 5px; /* Minimal margin from the top */
-  left: 5px; /* Minimal margin from the left */
-  background-color: transparent;
-  border: none;
-  color: #333;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: bold;
-  padding: 2px; /* Minimal padding */
-}
-
-

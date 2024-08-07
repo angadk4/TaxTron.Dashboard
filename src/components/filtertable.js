@@ -97,11 +97,14 @@ const FilterTable = ({ setSelectedTab }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState(0); // For storing the item1 value
-  const [selectedMonth, setSelectedMonth] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
-  const [isDateRangeEnabled, setIsDateRangeEnabled] = useState(true);
-  const [isMonthDayEnabled, setIsMonthDayEnabled] = useState(false);
   const itemsPerPage = 20;
+
+  // New state for month-day selection
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
+  const [showDaySelector, setShowDaySelector] = useState(false);
+  const [appliedMonth, setAppliedMonth] = useState('');
+  const [appliedDay, setAppliedDay] = useState('');
 
   const buildParams = useCallback(() => {
     const params = new URLSearchParams();
@@ -134,15 +137,7 @@ const FilterTable = ({ setSelectedTab }) => {
     if (filters.length > 0) {
       params.append('FilterText', filters.join(' and '));
     }
-    if (isMonthDayEnabled) {
-      if (selectedMonth && !selectedDay) {
-        params.append('FromDate', `2024-${selectedMonth.toString().padStart(2, '0')}-01`);
-        params.append('FilterType', 'ClientDOBMonth');
-      } else if (selectedMonth && selectedDay) {
-        params.append('FromDate', `2024-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`);
-        params.append('FilterType', 'ClientDOBDay');
-      }
-    } else if (isDateRangeEnabled && appliedDateRange && appliedDateRange.startDate && appliedDateRange.endDate) {
+    if (appliedDateRange && appliedDateRange.startDate && appliedDateRange.endDate) {
       const fromDate = format(appliedDateRange.startDate, 'yyyy-MM-dd');
       const toDate = format(appliedDateRange.endDate, 'yyyy-MM-dd');
       params.append('FromDate', fromDate);
@@ -163,12 +158,18 @@ const FilterTable = ({ setSelectedTab }) => {
       }
       params.append('FilterType', filterType);
     }
+    // New month-day selection params
+    if (activeTab === 'T1' && appliedMonth) {
+      const fromDate = `2024-${appliedMonth.padStart(2, '0')}-${appliedDay ? String(appliedDay).padStart(2, '0') : '01'}`;
+      params.append('FromDate', fromDate);
+      params.append('FilterType', appliedDay ? 'ClientDOBDay' : 'ClientDOBMonth');
+    }
     params.append('Size', itemsPerPage);
     if (currentPage > 0) {
       params.append('Skip', currentPage * itemsPerPage);
     }
     return params.toString();
-  }, [activeTab, debouncedSearchQuery, selectedLocation, appliedCurFilters, appliedPrevFilters, appliedDateRange, currentPage, isMonthDayEnabled, selectedMonth, selectedDay, isDateRangeEnabled]);
+  }, [activeTab, debouncedSearchQuery, selectedLocation, appliedCurFilters, appliedPrevFilters, appliedDateRange, currentPage, appliedMonth, appliedDay]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => setDebouncedSearchQuery(searchQuery), 500);
@@ -179,7 +180,9 @@ const FilterTable = ({ setSelectedTab }) => {
     setCurrentPage(0);
     setAppliedCurFilters(curCheckBoxState);
     setAppliedPrevFilters(prevCheckBoxState);
-    setAppliedDateRange(isDateRangeEnabled && selectedDateRange.startDate && selectedDateRange.endDate ? selectedDateRange : null);
+    setAppliedDateRange(selectedDateRange.startDate && selectedDateRange.endDate ? selectedDateRange : null);
+    setAppliedMonth(selectedMonth);
+    setAppliedDay(selectedDay);
     setLoading(true);
     setFilteredClients([]);
   };
@@ -189,6 +192,10 @@ const FilterTable = ({ setSelectedTab }) => {
     setFilteredClients([]);
     setSelectedDateRange({ startDate: null, endDate: null, key: 'selection' });
     setAppliedDateRange(null);
+    setSelectedMonth('');
+    setSelectedDay('');
+    setAppliedMonth('');
+    setAppliedDay('');
   }, [activeTab]);
 
   const sortedClients = useMemo(() => {
@@ -285,7 +292,7 @@ const FilterTable = ({ setSelectedTab }) => {
       return [
         { key: 'companyName', label: 'Company Name', className: 'company-name' },
         { key: 'bnFull', label: 'Business Number', className: 'business-number' },
-        { key: 'fyEnd', label: 'Year End', className: 'year-end' },
+        { key: 'dob', label: 'Year End', className: 'year-end' },
         { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
       ];
     } else {
@@ -355,10 +362,10 @@ const FilterTable = ({ setSelectedTab }) => {
     setCurrentPage(0);
     setFilteredClients([]); // Reset to empty array
     setSelectedYear('Cur Yr');
-    setSelectedMonth(null);
-    setSelectedDay(null);
-    setIsDateRangeEnabled(true);
-    setIsMonthDayEnabled(false);
+    setSelectedMonth('');
+    setSelectedDay('');
+    setAppliedMonth('');
+    setAppliedDay('');
   };
 
   const handleYearChange = (year) => {
@@ -401,18 +408,20 @@ const FilterTable = ({ setSelectedTab }) => {
     }
   };
 
-  const renderCheckbox = (name, label) => (
-    <div className="filter-item">
-      <label htmlFor={name}>{label}</label>
-      <input
-        type="checkbox"
-        id={name}
-        name={name}
-        checked={selectedYear === 'Cur Yr' ? curCheckBoxState[name] : prevCheckBoxState[name]}
-        onChange={handleCheckboxChange}
-      />
-    </div>
-  );
+  function renderCheckbox(name, label) {
+    return (
+      <div className="filter-item">
+        <label htmlFor={name}>{label}</label>
+        <input
+          type="checkbox"
+          id={name}
+          name={name}
+          checked={selectedYear === 'Cur Yr' ? curCheckBoxState[name] : prevCheckBoxState[name]}
+          onChange={handleCheckboxChange}
+        />
+      </div>
+    );
+  }
 
   const renderCalendarOverlay = () => {
     if (!showCalendar) return null;
@@ -436,27 +445,79 @@ const FilterTable = ({ setSelectedTab }) => {
     );
   };
 
-  const renderDayOverlay = () => {
-    if (!showCalendar) return null;
+  const renderMonthDaySelector = () => {
+    if (activeTab !== 'T1') return null;
 
-    const daysInMonth = new Date(2024, selectedMonth, 0).getDate();  // Get the number of days in the selected month
+    const handleMonthChange = (e) => {
+      setSelectedMonth(e.target.value);
+      setSelectedDay(''); // Reset day when month changes
+    };
 
-    return (
-      <div className="calendar-overlay" onClick={() => setShowCalendar(false)}>
-        <div className="calendar-container" onClick={(e) => e.stopPropagation()}>
-          <button className="close-button" onClick={() => setShowCalendar(false)}>✖</button>
-          <div className="day-selection">
-            {Array.from({ length: daysInMonth }, (_, i) => (
-              <button
-                key={i}
-                className={`day-button ${selectedDay === i + 1 ? 'active' : ''}`}
-                onClick={() => setSelectedDay(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
+    const handleDaySelect = (day) => {
+      setSelectedDay(day);
+      setShowDaySelector(false);
+    };
+
+    const renderDayOverlay = () => {
+      if (!showDaySelector) return null;
+
+      const daysInMonth = new Date(2024, selectedMonth, 0).getDate();
+      const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+      return (
+        <div className="calendar-overlay" onClick={() => setShowDaySelector(false)}>
+          <div className="calendar-container" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={() => setShowDaySelector(false)}>✖</button>
+            <div className="calendar-header">Select Day</div>
+            <div className="calendar-grid">
+              {daysArray.map(day => (
+                <div
+                  key={day}
+                  className={`calendar-day ${selectedDay === day ? 'selected' : ''}`}
+                  onClick={() => handleDaySelect(day)}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
+      );
+    };
+
+    return (
+      <div className="filter-category">
+        <h3>By Month-Day</h3>
+        <div className="filter-item">
+          <label htmlFor="month-select">Month:</label>
+          <select
+            id="month-select"
+            value={selectedMonth}
+            onChange={handleMonthChange}
+            className="custom-select"
+          >
+            <option value="">Select a month</option>
+            {Array.from({ length: 12 }, (_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {new Date(0, i).toLocaleString('default', { month: 'long' })}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="filter-item day-selection">
+          <label>Day:</label>
+          <span className="date-display">
+            {selectedDay ? `${selectedMonth}-${selectedDay}` : 'No day selected'}
+          </span>
+          <button
+            className="calendar-button"
+            onClick={() => setShowDaySelector(true)}
+            disabled={!selectedMonth}
+          >
+            Select Day
+          </button>
+        </div>
+        {renderDayOverlay()}
       </div>
     );
   };
@@ -491,7 +552,7 @@ const FilterTable = ({ setSelectedTab }) => {
 
         <div className="filter-category">
           <h3>By Date Range</h3>
-          <div className="filter-item">
+          <div className={`filter-item ${selectedMonth ? 'inactive' : ''}`}>
             <label htmlFor="date-range">Date Range:</label>
             <span className="date-display">
               {selectedDateRange.startDate && selectedDateRange.endDate
@@ -501,43 +562,14 @@ const FilterTable = ({ setSelectedTab }) => {
             <button 
               className="calendar-button" 
               onClick={() => setShowCalendar(true)}
-              disabled={!isDateRangeEnabled}
+              disabled={!!selectedMonth}
             >
               Select Date Range
             </button>
           </div>
         </div>
 
-        <div className="filter-category">
-          <h3>By Month-Day</h3>
-          <div className="filter-item">
-            <label htmlFor="month-select">Month:</label>
-            <select
-              id="month-select"
-              value={selectedMonth || ''}
-              onChange={(e) => {
-                setSelectedMonth(e.target.value);
-                setIsMonthDayEnabled(true);
-                setIsDateRangeEnabled(false);
-              }}
-              className="custom-select"
-            >
-              <option value="">Select a month</option>
-              {Array.from({ length: 12 }, (_, i) => (
-                <option key={i} value={i + 1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
-              ))}
-            </select>
-          </div>
-          <div className="filter-item">
-            <button
-              className="calendar-button"
-              onClick={() => setShowCalendar(true)}
-              disabled={!selectedMonth}
-            >
-              Select Day
-            </button>
-          </div>
-        </div>
+        {renderMonthDaySelector()}
 
         <div className="filter-category">
           <h3>Client Filters</h3>
@@ -660,7 +692,6 @@ const FilterTable = ({ setSelectedTab }) => {
         )}
       </div>
       {renderCalendarOverlay()}
-      {renderDayOverlay()}
     </div>
   );
 };
