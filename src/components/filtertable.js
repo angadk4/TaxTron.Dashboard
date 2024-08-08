@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Papa from 'papaparse';
 import APIController from './clientfetch';
+import { useTable, useSortBy, useResizeColumns, useFlexLayout } from 'react-table';
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css'; // theme css file
 import './filtertable.css';
@@ -198,31 +199,6 @@ const FilterTable = ({ setSelectedTab }) => {
     setAppliedDay('');
   }, [activeTab]);
 
-  const sortedClients = useMemo(() => {
-    const sorted = Array.isArray(filteredClients) ? [...filteredClients] : [];
-    if (sortConfig.key) {
-      sorted.sort((a, b) => {
-        if (sortConfig.key === 'lastUpdated') {
-          return (new Date(a[sortConfig.key]) - new Date(b[sortConfig.key])) * (sortConfig.direction === 'asc' ? 1 : -1);
-        }
-        return (a[sortConfig.key] || '').localeCompare(b[sortConfig.key] || '') * (sortConfig.direction === 'asc' ? 1 : -1);
-      });
-    }
-    return sorted;
-  }, [filteredClients, sortConfig]);
-
-  const paginatedClients = useMemo(() => {
-    const startIndex = currentPage * itemsPerPage;
-    return sortedClients.slice(startIndex, startIndex + itemsPerPage);
-  }, [sortedClients, currentPage, itemsPerPage]);
-
-  const requestSort = (key) => {
-    setSortConfig((prevState) => ({
-      key,
-      direction: prevState.key === key && prevState.direction === 'asc' ? 'desc' : 'asc',
-    }));
-  };
-
   const handleClientClick = async (clientId) => {
     setSelectedTab(activeTab); // Store the active tab when navigating to client details
     const selectedClient = filteredClients.find(client => client.clientId === clientId);
@@ -241,7 +217,7 @@ const FilterTable = ({ setSelectedTab }) => {
   };
 
   const exportToCSV = () => {
-    const csvData = sortedClients.map(client => {
+    const csvData = filteredClients.map(client => {
       const { clientId, firstnames, surname, sin, phoneNo, email, lastUpdated, companyName, bnFull, fyEnd, estateName, SNFull } = client;
       const csvRow = activeTab === 'T3' ? {
         'Estate Name': estateName,
@@ -272,50 +248,56 @@ const FilterTable = ({ setSelectedTab }) => {
     document.body.removeChild(link);
   };
 
+  const data = useMemo(() => filteredClients, [filteredClients]);
+
   const columns = useMemo(() => {
     if (activeTab === 'T3') {
       return [
-        { key: 'estateName', label: 'Estate Name', className: 'estate-name' },
-        { key: 'SNFull', label: 'Trust Number', className: 'trust-number' },
-        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+        { Header: 'Estate Name', accessor: 'estateName' },
+        { Header: 'Trust Number', accessor: 'SNFull' },
+        { Header: 'Last Updated', accessor: 'lastUpdated', Cell: ({ value }) => formatDate(value) },
       ];
     } else if (activeTab === 'T1') {
       return [
-        { key: 'firstnames', label: 'First Name', className: 'first-name' },
-        { key: 'surname', label: 'Surname', className: 'surname' },
-        { key: 'sin', label: 'SIN', className: 'sin' },
-        { key: 'phoneNo', label: 'Phone', className: 'phone' },
-        { key: 'email', label: 'Email', className: 'email' },
-        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+        { Header: 'First Name', accessor: 'firstnames' },
+        { Header: 'Surname', accessor: 'surname' },
+        { Header: 'SIN', accessor: 'sin' },
+        { Header: 'Phone', accessor: 'phoneNo' },
+        { Header: 'Email', accessor: 'email' },
+        { Header: 'Last Updated', accessor: 'lastUpdated', Cell: ({ value }) => formatDate(value) },
       ];
     } else if (activeTab === 'T2') {
       return [
-        { key: 'companyName', label: 'Company Name', className: 'company-name' },
-        { key: 'bnFull', label: 'Business Number', className: 'business-number' },
-        { key: 'dob', label: 'Year End', className: 'year-end' },
-        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+        { Header: 'Company Name', accessor: 'companyName' },
+        { Header: 'Business Number', accessor: 'bnFull' },
+        { Header: 'Year End', accessor: 'fyEnd' },
+        { Header: 'Last Updated', accessor: 'lastUpdated', Cell: ({ value }) => formatDate(value) },
       ];
     } else {
       return [
-        { key: 'companyName', label: 'Company Name', className: 'company-name' },
-        { key: 'bnFull', label: 'Business Number', className: 'business-number' },
-        { key: 'fyEnd', label: 'Year End', className: 'year-end' },
-        { key: 'lastUpdated', label: 'Last Updated', className: 'last-updated' },
+        { Header: 'Company Name', accessor: 'companyName' },
+        { Header: 'Business Number', accessor: 'bnFull' },
+        { Header: 'Year End', accessor: 'fyEnd' },
+        { Header: 'Last Updated', accessor: 'lastUpdated', Cell: ({ value }) => formatDate(value) },
       ];
     }
   }, [activeTab]);
 
-  useEffect(() => {
-    const fadeIn = (selector) => {
-      const element = document.querySelector(selector);
-      element.classList.add('fade-in');
-      const timer = setTimeout(() => element.classList.remove('fade-in'), 300);
-      return () => clearTimeout(timer);
-    };
-
-    fadeIn('.tabcontent.active');
-    fadeIn('.custom-table tbody');
-  }, [activeTab, sortConfig]);
+  const {
+    getTableProps,
+    getTableBodyProps,
+    headerGroups,
+    rows,
+    prepareRow,
+  } = useTable(
+    {
+      columns,
+      data,
+    },
+    useSortBy,
+    useFlexLayout,
+    useResizeColumns
+  );
 
   const handleCheckboxChange = (event) => {
     const { name } = event.target;
@@ -631,40 +613,40 @@ const FilterTable = ({ setSelectedTab }) => {
           <div className="loading-spinner">Loading...</div>
         ) : (
           <div className="tabcontent active">
-            <table className="custom-table">
+            <table {...getTableProps()} className="custom-table">
               <thead>
-                <tr>
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      className={`${column.className} sortable`}
-                      onClick={() => requestSort(column.key)}
-                    >
-                      {column.label} {sortConfig.key === column.key ? (sortConfig.direction === 'asc' ? '▲' : '▼') : ''}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredClients.length > 0 ? filteredClients.map((client, index) => (
-                  <tr
-                    key={index}
-                    onClick={() => handleClientClick(client.clientId)}
-                    className="highlighted"
-                  >
-                    {columns.map((column) => (
-                      <td key={column.key} className={column.className}>
-                        {column.key === 'lastUpdated'
-                          ? formatDate(client[column.key])
-                          : client[column.key] || 'N/A'}
-                      </td>
+                {headerGroups.map(headerGroup => (
+                  <tr {...headerGroup.getHeaderGroupProps()}>
+                    {headerGroup.headers.map(column => (
+                      <th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                        {column.render('Header')}
+                        <span>
+                          {column.isSorted
+                            ? column.isSortedDesc
+                              ? ' ▼'
+                              : ' ▲'
+                            : ''}
+                        </span>
+                        <div
+                          {...column.getResizerProps()}
+                          className={`resizer ${column.isResizing ? 'isResizing' : ''}`}
+                        />
+                      </th>
                     ))}
                   </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={columns.length} className="no-results">No results found</td>
-                  </tr>
-                )}
+                ))}
+              </thead>
+              <tbody {...getTableBodyProps()}>
+                {rows.map(row => {
+                  prepareRow(row);
+                  return (
+                    <tr {...row.getRowProps()} onClick={() => handleClientClick(row.original.clientId)}>
+                      {row.cells.map(cell => (
+                        <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             <ReactPaginate
