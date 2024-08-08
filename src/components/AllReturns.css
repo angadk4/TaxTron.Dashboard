@@ -1,408 +1,460 @@
 .main-content {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.filter-container {
+  width: 20%;
+  background-color: #f4f4f4;
+  padding: 20px;
+  margin: 10px 5px 10px 10px;
+  border: 2px solid #dedede;
+  border-radius: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: fit-content;
+}
+
+.table-container {
+  width: 80%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  padding: 10px;
+  margin-right: 5px;
+}
+
+.search-bar {
+  margin-bottom: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.search-bar input {
+  width: 80%;
+  padding: 10px 15px;
+  border: 2px solid rgb(199, 222, 200);
+  border-radius: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  transition: all 0.3s ease-in-out;
+}
+
+.search-bar input:focus {
+  border-color: #4CAF50;
+  border-width: 2.5px;
+  outline: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  table-layout: fixed;
+}
+
+.custom-table th,
+.custom-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  transition: background-color 0.3s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  position: relative;
+}
+
+.custom-table th {
+  background-color: #f2f2f2;
+  color: #333;
+}
+
+.custom-table th:hover {
+  background-color: #e2e2e2;
+}
+
+.custom-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.custom-table td .scrollable-content {
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  display: inline-block;
+}
+
+.custom-table td .scrollable-content::-webkit-scrollbar {
+  height: 6px;
+}
+
+.custom-table td .scrollable-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+.sort-indicator {
+  margin-left: 5px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  margin-bottom: 10px;
+  list-style: none;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pagination li {
+  margin: 0 3px;
+}
+
+.pagination a {
+  background-color: #4CAF50;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  margin: 0 3px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  border-radius: 12px;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 30px;
+  height: 24px;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pagination a:hover {
+  background-color: #337435;
+  transform: translateY(-2px);
+}
+
+.pagination .active a {
+  background-color: #337435;
+  pointer-events: none;
+  transform: scale(1.1);
+}
+
+.pagination .disabled a {
+  background-color: #ccc;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.filter-category {
+  margin-bottom: 10px;
+}
+
+.date-picker-container {
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.date-button {
+  background: linear-gradient(135deg, #4caf50, #81c784);
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 25px;
+  width: 170px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+.date-button:hover {
+  background: linear-gradient(135deg, #45a049, #66bb6a);
+  transform: translateY(-2px);
+}
+
+.filter-container .date-range-display {
+  width: 80%;
+  margin: 10px auto;
+  padding: 10px;
+  border: 2px solid #ebebeb;
+  border-radius: 10px;
+  font-size: 16px;
+  text-align: center;
+  background-color: #ebebeb;
+  color: #155724;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 5px;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background-color: #fff;
+  font-size: 14px;
+  transition: border-color 0.3s ease-in-out;
+}
+
+.custom-select:focus {
+  border-color: #80a581;
+  outline: none;
+}
+
+.custom-select option {
+  padding: 10px;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+input[type="checkbox"] {
+  margin-left: 10px;
+}
+
+.reset-button,
+.apply-button {
+  background-color: #4CAF50;
+  color: #ffffff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.reset-button:hover,
+.apply-button:hover {
+  background-color: #337435;
+}
+
+.reset-button {
+  background-color: #e74c3c;
+}
+
+.filter-year-toggle {
+  margin-bottom: 20px;
+}
+
+.year-button {
+  width: 107px;
+  height: 30px;
+  background-color: #ccc;
+  color: #fff;
+  border: none;
+  padding: 5px 3px;
+  margin: 0px 3px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.year-button.active {
+  background-color: #4CAF50;
+}
+
+.year-button:hover:not(.active) {
+  background-color: #97cea1;
+}
+
+.year-button:active:not(.active) {
+  background-color: #4CAF50;
+}
+
+.calendar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.calendar-container {
+  background-color: #fff;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+  width: fit-content;
+}
+
+.calendar-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.calendar-day {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s;
+}
+
+.calendar-day:hover {
+  background-color: #e9e9e9;
+}
+
+.calendar-day.selected {
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+.settings-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px; /* Increased padding for a more prominent button */
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  margin-right: 30px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.settings-button:hover {
+  background-color: #337435; /* Darker shade for hover effect */
+}
+
+.settings-button svg {
+  margin-right: 10px;
+  font-size: 1.5em; /* Increase the size of the gear icon */
+}
+
+.settings-button:active {
+  transform: scale(0.98); /* Slightly reduce size when clicked */
+}
+
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.settings-modal {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  width: 500px;
+  height: 500px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* New styles for resizable columns */
+.resizer {
+  display: inline-block;
+  width: 10px;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateX(50%);
+  z-index: 1;
+  touch-action: none;
+}
+
+.resizer.isResizing {
+  background: blue;
+}
+
+/* New styles for applied filters container and filter boxes with animations */
+.applied-filters {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0px 5px 10px 5px;
+}
+
+.filter-box {
+  background-color: #4CAF50;
+  color: white;
+  padding: 5px 10px;
+  margin: 5px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.5s ease;
+}
+
+.filter-box.removing {
+  animation: fadeOut 0.5s ease forwards;
+}
+
+.filter-box button {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
-  
-  .filter-container {
-    width: 20%;
-    background-color: #f4f4f4;
-    padding: 20px;
-    margin: 10px 5px 10px 10px;
-    border: 2px solid #dedede;
-    border-radius: 10px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    height: fit-content;
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  .table-container {
-    width: 80%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    font-family: Arial, sans-serif;
-    padding: 10px;
-    margin-right: 5px;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
   }
-  
-  .search-bar {
-    margin-bottom: 15px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
+  to {
+    opacity: 0;
+    transform: scale(0.9);
   }
-  
-  .search-bar input {
-    width: 80%;
-    padding: 10px 15px;
-    border: 2px solid rgb(199, 222, 200);
-    border-radius: 25px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-size: 16px;
-    transition: all 0.3s ease-in-out;
-  }
-  
-  .search-bar input:focus {
-    border-color: #4CAF50;
-    border-width: 2.5px;
-    outline: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-  
-  .custom-table {
-    width: 100%;
-    border-collapse: collapse;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    table-layout: fixed;
-  }
-  
-  .custom-table th,
-  .custom-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    transition: background-color 0.3s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    position: relative;
-  }
-  
-  .custom-table th {
-    background-color: #f2f2f2;
-    color: #333;
-  }
-  
-  .custom-table th:hover {
-    background-color: #e2e2e2;
-  }
-  
-  .custom-table tbody tr:hover {
-    background-color: #f9f9f9;
-  }
-  
-  .custom-table td .scrollable-content {
-    white-space: nowrap;
-    overflow-x: auto;
-    overflow-y: hidden;
-    max-width: 100%;
-    display: inline-block;
-  }
-  
-  .custom-table td .scrollable-content::-webkit-scrollbar {
-    height: 6px;
-  }
-  
-  .custom-table td .scrollable-content::-webkit-scrollbar-thumb {
-    background-color: #ccc;
-    border-radius: 3px;
-  }
-  
-  .sort-indicator {
-    margin-left: 5px;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  
-  .pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 25px;
-    margin-bottom: 10px;
-    list-style: none;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  
-  .pagination li {
-    margin: 0 3px;
-  }
-  
-  .pagination a {
-    background-color: #4CAF50;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    margin: 0 3px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    border-radius: 12px;
-    text-decoration: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 30px;
-    height: 24px;
-    font-size: 14px;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .pagination a:hover {
-    background-color: #337435;
-    transform: translateY(-2px);
-  }
-  
-  .pagination .active a {
-    background-color: #337435;
-    pointer-events: none;
-    transform: scale(1.1);
-  }
-  
-  .pagination .disabled a {
-    background-color: #ccc;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-  
-  .filter-category {
-    margin-bottom: 10px;
-  }
-  
-  .date-picker-container {
-    margin-bottom: 5px;
-    text-align: center;
-  }
-  
-  .date-button {
-    background: linear-gradient(135deg, #4caf50, #81c784);
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 25px;
-    width: 170px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: bold;
-    transition: background 0.3s ease, transform 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 5px;
-    display: inline-block;
-  }
-  
-  .date-button:hover {
-    background: linear-gradient(135deg, #45a049, #66bb6a);
-    transform: translateY(-2px);
-  }
-  
-  .filter-container .date-range-display {
-    width: 80%;
-    margin: 10px auto;
-    padding: 10px;
-    border: 2px solid #ebebeb;
-    border-radius: 10px;
-    font-size: 16px;
-    text-align: center;
-    background-color: #ebebeb;
-    color: #155724;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  
-  .custom-select {
-    width: 100%;
-    padding: 5px;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    background-color: #fff;
-    font-size: 14px;
-    transition: border-color 0.3s ease-in-out;
-  }
-  
-  .custom-select:focus {
-    border-color: #80a581;
-    outline: none;
-  }
-  
-  .custom-select option {
-    padding: 10px;
-  }
-  
-  .filter-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-    font-size: 14px;
-  }
-  
-  input[type="checkbox"] {
-    margin-left: 10px;
-  }
-  
-  .reset-button,
-  .apply-button {
-    background-color: #4CAF50;
-    color: #ffffff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    font-size: 14px;
-  }
-  
-  .reset-button:hover,
-  .apply-button:hover {
-    background-color: #337435;
-  }
-  
-  .reset-button {
-    background-color: #e74c3c;
-  }
-  
-  .filter-year-toggle {
-    margin-bottom: 20px;
-  }
-  
-  .year-button {
-    width: 107px;
-    height: 30px;
-    background-color: #ccc;
-    color: #fff;
-    border: none;
-    padding: 5px 3px;
-    margin: 0px 3px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 5px;
-  }
-  
-  .year-button.active {
-    background-color: #4CAF50;
-  }
-  
-  .year-button:hover:not(.active) {
-    background-color: #97cea1;
-  }
-  
-  .year-button:active:not(.active) {
-    background-color: #4CAF50;
-  }
-  
-  .calendar-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  
-  .calendar-container {
-    background-color: #fff;
-    border: 2px solid #ddd;
-    border-radius: 10px;
-    padding: 10px;
-    width: fit-content;
-  }
-  
-  .calendar-header {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  
-  .calendar-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 5px;
-  }
-  
-  .calendar-day {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    text-align: center;
-    transition: background-color 0.3s;
-  }
-  
-  .calendar-day:hover {
-    background-color: #e9e9e9;
-  }
-  
-  .calendar-day.selected {
-    background-color: #4CAF50;
-    color: #fff;
-  }
-  
-  .settings-button {
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px; /* Increased padding for a more prominent button */
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 10px;
-    margin-right: 30px;
-    margin-bottom: 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.3s, transform 0.2s;
-  }
-  
-  .settings-button:hover {
-    background-color: #337435; /* Darker shade for hover effect */
-  }
-  
-  .settings-button svg {
-    margin-right: 10px;
-    font-size: 1.5em; /* Increase the size of the gear icon */
-  }
-  
-  .settings-button:active {
-    transform: scale(0.98); /* Slightly reduce size when clicked */
-  }
-  
-  .settings-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  
-  .settings-modal {
-    background-color: white;
-    border-radius: 10px;
-    padding: 20px;
-    width: 500px;
-    height: 500px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  /* New styles for resizable columns */
-  .resizer {
-    display: inline-block;
-    width: 10px;
-    height: 100%;
-    position: absolute;
-    right: 0;
-    top: 0;
-    transform: translateX(50%);
-    z-index: 1;
-    touch-action: none;
-  }
-  
-  .resizer.isResizing {
-    background: blue;
-  }
-  
+}

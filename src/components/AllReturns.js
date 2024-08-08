@@ -1,11 +1,15 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
+import { DateRangePicker } from 'react-date-range';
+import { format, parseISO } from 'date-fns';
 import { useTable, useSortBy, useResizeColumns, useFlexLayout } from 'react-table';
 import { Resizable } from 'react-resizable';
 import './AllReturns.css';
 import APIController from './clientfetch';
 import Papa from 'papaparse';
 import { FaCog } from 'react-icons/fa';
+import 'react-date-range/dist/styles.css'; // main style file
+import 'react-date-range/dist/theme/default.css'; // theme css file
 
 const baseURL = '/taxreturnsearch/getreturnsdata/';
 const userID = '000779638e3141fcb06a56bdc5cc484e';
@@ -48,8 +52,12 @@ const AllReturns = () => {
   const [activeTab, setActiveTab] = useState('T1');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState('');
-  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedDateRange, setSelectedDateRange] = useState({
+    startDate: null,
+    endDate: null,
+    key: 'selection'
+  });
+  const [appliedDateRange, setAppliedDateRange] = useState(null);
   const [appliedCurFilters, setAppliedCurFilters] = useState({});
   const [appliedPrevFilters, setAppliedPrevFilters] = useState({});
   const [appliedT2Filters, setAppliedT2Filters] = useState({});
@@ -102,10 +110,6 @@ const AllReturns = () => {
   const [pagination, setPagination] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const itemsPerPage = 20;
-
-  const months = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => new Date(0, i).toLocaleString('en-US', { month: 'long' }))
-  , []);
 
   const buildParams = useCallback(() => {
     const params = new URLSearchParams();
@@ -175,9 +179,13 @@ const AllReturns = () => {
           filters.push(`trustType eq ${appliedSelectedTrustType}`);
         }
       }
-      if (selectedDay) {
-        filters.push(`yearEnd eq ${selectedDay}`);
-      }
+    }
+    if (appliedDateRange && appliedDateRange.startDate && appliedDateRange.endDate) {
+      const fromDate = format(appliedDateRange.startDate, 'yyyy-MM-dd');
+      const toDate = format(appliedDateRange.endDate, 'yyyy-MM-dd');
+      params.append('FromDate', fromDate);
+      params.append('ToDate', toDate);
+      params.append('FilterType', 'TaxReturnsFromTo');
     }
     if (filters.length > 0) {
       params.append('FilterText', filters.join(' and '));
@@ -185,7 +193,7 @@ const AllReturns = () => {
     params.append('Size', itemsPerPage);
     params.append('Skip', currentPage * itemsPerPage);
     return params.toString();
-  }, [activeTab, debouncedSearchQuery, selectedLocation, appliedCurFilters, appliedPrevFilters, appliedT2Filters, appliedT3Filters, appliedSelectedTrustType, selectedDay, currentPage]);
+  }, [activeTab, debouncedSearchQuery, selectedLocation, appliedCurFilters, appliedPrevFilters, appliedT2Filters, appliedT3Filters, appliedSelectedTrustType, appliedDateRange, currentPage]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => setDebouncedSearchQuery(searchQuery), 500);
@@ -203,6 +211,7 @@ const AllReturns = () => {
       setAppliedT3Filters(t3CheckBoxState);
       setAppliedSelectedTrustType(tempSelectedTrustType);
     }
+    setAppliedDateRange(selectedDateRange.startDate && selectedDateRange.endDate ? selectedDateRange : null);
     setLoading(true);
     setFilteredClients([]);
   };
@@ -210,6 +219,8 @@ const AllReturns = () => {
   useEffect(() => {
     setLoading(true);
     setFilteredClients([]);
+    setSelectedDateRange({ startDate: null, endDate: null, key: 'selection' });
+    setAppliedDateRange(null);
   }, [activeTab]);
 
   const sortedClients = useMemo(() => {
@@ -247,20 +258,17 @@ const AllReturns = () => {
     }
   };
 
-  const handleMonthChange = (e) => {
-    setSelectedMonth(e.target.value);
-    setShowCalendar(false);
-    setSelectedDay('');
-  };
-
-  const handleDayChange = (date) => {
-    setSelectedDay(date);
-    setShowCalendar(false);
+  const handleLocationChange = (e) => {
+    setSelectedLocation(e.target.value);
   };
 
   const handleReset = () => {
-    setSelectedMonth('');
-    setSelectedDay('');
+    setSelectedDateRange({
+      startDate: null,
+      endDate: null,
+      key: 'selection'
+    });
+    setAppliedDateRange(null);
     setSearchQuery('');
     setSelectedLocation('');
     setCurCheckBoxState({
@@ -308,10 +316,6 @@ const AllReturns = () => {
     setAppliedT3Filters({});
     setCurrentPage(0);
     setFilteredClients([]);
-  };
-
-  const handleLocationChange = (e) => {
-    setSelectedLocation(e.target.value);
   };
 
   const removeFilter = (filterName) => {
@@ -409,27 +413,23 @@ const AllReturns = () => {
     );
   }
 
-  const renderCalendar = () => {
-    if (!selectedMonth) return null;
-    const monthIndex = months.indexOf(selectedMonth);
-    const daysInMonth = new Date(2024, monthIndex + 1, 0).getDate();
+  const renderCalendarOverlay = () => {
+    if (!showCalendar) return null;
+
     return (
       <div className="calendar-overlay" onClick={() => setShowCalendar(false)}>
         <div className="calendar-container" onClick={(e) => e.stopPropagation()}>
-          <div className="calendar-header">
-            <h4>{selectedMonth}</h4>
-          </div>
-          <div className="calendar-grid">
-            {[...Array(daysInMonth)].map((_, i) => (
-              <button
-                key={i + 1}
-                className={`calendar-day ${selectedDay === (i + 1) ? 'selected' : ''}`}
-                onClick={() => handleDayChange(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
+          <button className="close-button" onClick={() => setShowCalendar(false)}>✖</button>
+          <DateRangePicker
+            ranges={[selectedDateRange]}
+            onChange={(item) => setSelectedDateRange(item.selection)}
+            showSelectionPreview={true}
+            moveRangeOnFirstSelection={false}
+            months={1}
+            direction="horizontal"
+            preventSnapRefocus={true}
+            calendarFocus="backwards"
+          />
         </div>
       </div>
     );
@@ -517,33 +517,21 @@ const AllReturns = () => {
           </div>
         </div>
         <div className="filter-category">
-          <h3>{activeTab === 'T1' ? 'By Birthdate' : 'By Year End'}</h3>
-          <div className="filter-item">
-            <label htmlFor="month-select">Month:</label>
-            <select 
-              id="month-select"
-              value={selectedMonth}
-              onChange={handleMonthChange}
-              className="custom-select"
-            >
-              <option value="">Select a month</option>
-              {months.map(month => (
-                <option key={month} value={month}>{month}</option>
-              ))}
-            </select>
-          </div>
-          <div className={`filter-item ${selectedMonth ? '' : 'inactive'}`}>
-            <label htmlFor="day-select">Day:</label>
-            <span className="date-display">{selectedDay ? `${selectedMonth} ${selectedDay}` : 'Select a day'}</span>
+          <h3>By Date Range</h3>
+          <div className={`filter-item`}>
+            <label htmlFor="date-range">Date Range:</label>
+            <span className="date-display">
+              {selectedDateRange.startDate && selectedDateRange.endDate
+                ? `${format(selectedDateRange.startDate, 'yyyy-MM-dd')} to ${format(selectedDateRange.endDate, 'yyyy-MM-dd')}`
+                : 'Select date range'}
+            </span>
             <button 
               className="calendar-button" 
-              onClick={() => setShowCalendar(true)} 
-              disabled={!selectedMonth}
+              onClick={() => setShowCalendar(true)}
             >
-              Select Date
+              Select Date Range
             </button>
           </div>
-          {showCalendar && renderCalendar()}
         </div>
         <div className="filter-category">
           <h3>Client Filters</h3>
@@ -727,6 +715,7 @@ const AllReturns = () => {
           </div>
         )}
       </div>
+      {renderCalendarOverlay()}
       {isSettingsOpen && (
         <div className="settings-overlay" onClick={toggleSettings}>
           <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
