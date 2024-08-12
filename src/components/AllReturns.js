@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import ReactPaginate from 'react-paginate';
 import { DateRangePicker } from 'react-date-range';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { useTable, useSortBy, useResizeColumns, useFlexLayout } from 'react-table';
 import { Resizable } from 'react-resizable';
 import './AllReturns.css';
@@ -109,6 +109,21 @@ const AllReturns = () => {
   const [error, setError] = useState('');
   const [pagination, setPagination] = useState(0);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // State for dynamic columns
+  const [selectedColumns, setSelectedColumns] = useState({
+    tags: true,
+    name: true,
+    spouse: true,
+    efileFilingStatus: true,
+    lastUpdated: true,
+    sin: false,
+    paymentstatus: false,
+    province: false
+  });
+
+  const [warning, setWarning] = useState('');
+
   const itemsPerPage = 20;
 
   const buildParams = useCallback(() => {
@@ -435,6 +450,7 @@ const AllReturns = () => {
     );
   };
 
+  // Updated column rendering logic based on selected columns
   const columns = useMemo(() => {
     if (activeTab === 'T3') {
       return [
@@ -452,16 +468,46 @@ const AllReturns = () => {
         { Header: 'Last Updated', accessor: (row) => formatDate(row.lastUpdated), id: 'lastUpdated' },
       ];
     }
-    return [
-      { Header: 'Tags', accessor: 'tags', id: 'tags' },
-      { Header: 'Name', accessor: (row) => `${row.firstnames} ${row.surname}`, id: 'name' },
-      { Header: 'Spouse', accessor: (row) => `${row.spFirstnames || ''} ${row.spSurname || ''}`, id: 'spouse' },
-      { Header: 'File Status', accessor: 'efileFilingStatus', id: 'efileFilingStatus' },
-      { Header: 'Last Updated', accessor: (row) => formatDate(row.lastUpdated), id: 'lastUpdated' },
-    ];
-  }, [activeTab]);
+
+    // Return columns based on selected checkboxes for T1
+    if (activeTab === 'T1') {
+      const baseColumns = [
+        selectedColumns.tags && { Header: 'Tags', accessor: 'tags', id: 'tags' },
+        selectedColumns.name && { Header: 'Name', accessor: (row) => `${row.firstnames} ${row.surname}`, id: 'name' },
+        selectedColumns.spouse && { Header: 'Spouse', accessor: (row) => `${row.spFirstnames || ''} ${row.spSurname || ''}`, id: 'spouse' },
+        selectedColumns.efileFilingStatus && { Header: 'File Status', accessor: 'efileFilingStatus', id: 'efileFilingStatus' },
+        selectedColumns.lastUpdated && { Header: 'Last Updated', accessor: (row) => formatDate(row.lastUpdated), id: 'lastUpdated' },
+      ].filter(Boolean);
+
+      const extraColumns = [
+        selectedColumns.sin && { Header: 'SIN', accessor: 'sin', id: 'sin' },
+        selectedColumns.paymentstatus && { Header: 'Payment Status', accessor: 'paymentstatus', id: 'paymentstatus' },
+        selectedColumns.province && { Header: 'Province', accessor: 'province', id: 'province' },
+      ].filter(Boolean);
+
+      return [...baseColumns, ...extraColumns];
+    }
+    
+    // Default columns for non-T1 tabs
+    return [];
+  }, [activeTab, selectedColumns]);
 
   const toggleSettings = () => setIsSettingsOpen(!isSettingsOpen);
+
+  const handleColumnCheckboxChange = (event) => {
+    const { name } = event.target;
+    const currentSelected = Object.values(selectedColumns).filter(Boolean).length;
+
+    if (selectedColumns[name] || currentSelected < 5) {
+      setSelectedColumns((prevState) => ({
+        ...prevState,
+        [name]: !prevState[name],
+      }));
+      setWarning('');
+    } else {
+      setWarning('You can only select up to 5 columns.');
+    }
+  };
 
   const data = useMemo(() => paginatedClients, [paginatedClients]);
 
@@ -606,10 +652,12 @@ const AllReturns = () => {
             />
           </div>
           <button className="export-button" onClick={exportToCSV}>Export to CSV</button>
-          <button className="settings-button" onClick={toggleSettings}>
-            <FaCog />
-            Display Settings
-          </button>
+          {activeTab === 'T1' && (
+            <button className="settings-button" onClick={toggleSettings}>
+              <FaCog />
+              Display Settings
+            </button>
+          )}
         </div>
         {(Object.keys(appliedCurFilters).some(key => appliedCurFilters[key]) || Object.keys(appliedPrevFilters).some(key => appliedPrevFilters[key]) || Object.values(appliedT2Filters).some(v => v) || Object.values(appliedT3Filters).some(v => v)) && (
           <div className="applied-filters">
@@ -716,10 +764,90 @@ const AllReturns = () => {
         )}
       </div>
       {renderCalendarOverlay()}
-      {isSettingsOpen && (
+      {isSettingsOpen && activeTab === 'T1' && (
         <div className="settings-overlay" onClick={toggleSettings}>
           <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
-            {/* Future filter settings can be added here */}
+            <h2>Display Settings</h2>
+            <p>Select up to 5 columns to display:</p>
+            <div className="checkbox-container">
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="tags"
+                    checked={selectedColumns.tags}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  Tags
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="name"
+                    checked={selectedColumns.name}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  Name
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="spouse"
+                    checked={selectedColumns.spouse}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  Spouse
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="efileFilingStatus"
+                    checked={selectedColumns.efileFilingStatus}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  File Status
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="lastUpdated"
+                    checked={selectedColumns.lastUpdated}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  Last Updated
+                </label>
+              </div>
+              <div>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="sin"
+                    checked={selectedColumns.sin}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  SIN
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="paymentstatus"
+                    checked={selectedColumns.paymentstatus}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  Payment Status
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="province"
+                    checked={selectedColumns.province}
+                    onChange={handleColumnCheckboxChange}
+                  />
+                  Province
+                </label>
+              </div>
+            </div>
+            {warning && <p className="warning">{warning}</p>}
           </div>
         </div>
       )}

@@ -109,7 +109,7 @@ const FilterTable = ({ setSelectedTab }) => {
 
   const buildParams = useCallback(() => {
     const params = new URLSearchParams();
-    params.append('Prod', activeTab);
+    params.append('ProductCode', activeTab);
     if (debouncedSearchQuery) {
       params.append('SearchText', debouncedSearchQuery);
     }
